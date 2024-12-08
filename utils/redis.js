@@ -20,13 +20,13 @@ class RedisClient {
   async set(key, value, expiration) {
     const setAsync = promisify(this.client.set)
       .bind(this.client);
-    await setAsync(key, value, { EX: expiration });
+    setAsync(key, value, { EX: expiration });
   }
 
   async del(key) {
     const delAsync = promisify(this.client.del)
       .bind(this.client);
-    await delAsync(key);
+    delAsync(key);
   }
 }
 
