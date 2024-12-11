@@ -51,7 +51,7 @@ class FilesController {
             isPublic: file.isPublic || false,
             parentId: file.parentId || 0,
           };
-          // dbClient.client.db().collection('files').insertOne(fileDoc);
+          dbClient.client.db().collection('files').insertOne(fileDoc);
           res.status(201).json(fileDoc);
           return;
         }
