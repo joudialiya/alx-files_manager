@@ -114,7 +114,7 @@ class FilesController {
           name: file.name,
           type: file.type,
           isPublic: file.isPublic,
-          parentId: file.parentId
+          parentId: file.parentId,
         });
         return;
       }
@@ -141,10 +141,15 @@ class FilesController {
           { $limit: 20 },
         ]);
         const docs = [];
-        for await (const doc of cursor) {
-          doc.id = doc._id;
-          delete doc._id;
-          docs.push(doc);
+        for await (const file of cursor) {
+          docs.push({
+            id: file._id,
+            userId: file.userId,
+            name: file.name,
+            type: file.type,
+            isPublic: file.isPublic,
+            parentId: file.parentId,
+          });
         }
         res.status(200).json(docs);
         return;
