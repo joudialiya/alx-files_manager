@@ -108,9 +108,14 @@ class FilesController {
           res.status(404).json({ error: 'Not found' });
           return;
         }
-        file.id = file._id;
-        delete file._id;
-        res.status(200).json(file);
+        res.status(200).json({
+          id: file._id,
+          userId: file.userId,
+          name: file.name,
+          type: file.type,
+          isPublic: file.isPublic,
+          parentId: file.parentId
+        });
         return;
       }
     }
