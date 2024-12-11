@@ -20,15 +20,15 @@ class FilesController {
       const user = await dbClient.client.db().collection('users').findOne({ _id: new ObjectId(userId) });
       if (user) {
         const file = req.body;
-        if (file.name === undefined) {
+        if (!file.name) {
           res.status(400).json({ error: 'Missing name' });
           return;
         }
-        if (file.type === undefined) {
+        if (!file.type || !['folder', 'file', 'image'].includes(file.type)) {
           res.status(400).json({ error: 'Missing type' });
           return;
         }
-        if (file.data === undefined && file.type !== 'folder') {
+        if (!file.data && file.type !== 'folder') {
           res.status(400).json({ error: 'Missing data' });
           return;
         }
@@ -52,7 +52,14 @@ class FilesController {
             parentId: file.parentId || 0,
           };
           dbClient.client.db().collection('files').insertOne(fileDoc);
-          res.status(201).json(fileDoc);
+          res.status(201).json({
+            id: fileDoc._id,
+            userId: fileDoc.userId,
+            name: fileDoc.name,
+            type: fileDoc.type,
+            isPublic: fileDoc.isPublic,
+            parentId: fileDoc.parentId,
+          });
           return;
         }
         const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
@@ -69,7 +76,15 @@ class FilesController {
           localPath,
         };
         dbClient.client.db().collection('files').insertOne(fileDoc);
-        res.status(201).json(fileDoc);
+        res.status(201).json({
+          id: fileDoc._id,
+          userId: fileDoc.userId,
+          name: fileDoc.name,
+          type: fileDoc.type,
+          isPublic: fileDoc.isPublic,
+          parentId: fileDoc.parentId,
+          localPath: fileDoc.localPath,
+        });
         return;
       }
     }
