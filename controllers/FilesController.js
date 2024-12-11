@@ -90,6 +90,63 @@ class FilesController {
     }
     res.status(401).json({ error: 'Unauthorized' });
   }
+
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   */
+  static async getShow(req, res) {
+    const token = req.headers['x-token'];
+    if (token) {
+      const key = `auth_${token}`;
+      const userId = await redisClient.get(key);
+      const user = await dbClient.client.db().collection('users').findOne({ _id: new ObjectId(userId) });
+      if (user) {
+        const id = req.params.id || '';
+        const file = await dbClient.client.db().collection('files').findOne({ _id: new ObjectId(id), userId });
+        if (!file) {
+          res.status(404).json({ error: 'Not found' });
+          return;
+        }
+        file.id = file._id;
+        delete file._id;
+        res.status(200).json(file);
+        return;
+      }
+    }
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  /**
+   * @param {Request} req
+   * @param {Response} res
+   */
+  static async getIndex(req, res) {
+    const token = req.headers['x-token'];
+    if (token) {
+      const key = `auth_${token}`;
+      const userId = await redisClient.get(key);
+      const user = await dbClient.client.db().collection('users').findOne({ _id: new ObjectId(userId) });
+      if (user) {
+        const parentId = req.query.parentId || 0;
+        const page = req.query.page || 0;
+        const cursor = dbClient.client.db().collection('files').aggregate([
+          { $match: { parentId } },
+          { $skip: 20 * page },
+          { $limit: 20 },
+        ]);
+        const docs = [];
+        for await (const doc of cursor) {
+          doc.id = doc._id;
+          delete doc._id;
+          docs.push(doc);
+        }
+        res.status(200).json(docs);
+        return;
+      }
+    }
+    res.status(401).json({ error: 'Unauthorized' });
+  }
 }
 
 export default FilesController;

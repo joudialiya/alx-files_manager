@@ -16,6 +16,8 @@ function mapRoutes(app) {
   app.post('/users', UsersController.postNew);
   app.get('/users/me', UsersController.getProfile);
   app.post('/files', FilesController.postUpload);
+  app.get('/files', FilesController.getIndex);
+  app.get('/files/:id', FilesController.getShow);
   app.get('/connect', AuthController.getConnect);
   app.get('/disconnect', AuthController.getDisconnect);
 }
