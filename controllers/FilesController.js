@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Request, Response } from 'express';
+import { query, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 import { mkdirSync, writeFileSync } from 'fs';
@@ -45,7 +45,7 @@ class FilesController {
         }
         if (file.type === 'folder') {
           const fileDoc = {
-            userId,
+            userId: user._id,
             name: file.name,
             type: file.type,
             isPublic: file.isPublic || false,
@@ -68,11 +68,11 @@ class FilesController {
         mkdirSync(FOLDER_PATH, { recursive: true });
         writeFileSync(localPath, data);
         const fileDoc = {
-          userId,
+          userId: user._id,
           name: file.name,
           type: file.type,
           isPublic: file.isPublic || false,
-          parentId: file.parentId || 0,
+          parentId: file.parentId || '0',
           localPath,
         };
         dbClient.client.db().collection('files').insertOne(fileDoc);
@@ -103,7 +103,7 @@ class FilesController {
       const user = await dbClient.client.db().collection('users').findOne({ _id: new ObjectId(userId) });
       if (user) {
         const id = req.params.id || '';
-        const file = await dbClient.client.db().collection('files').findOne({ _id: new ObjectId(id), userId });
+        const file = await dbClient.client.db().collection('files').findOne({ _id: new ObjectId(id), userId: user._id });
         if (!file) {
           res.status(404).json({ error: 'Not found' });
           return;
@@ -134,9 +134,9 @@ class FilesController {
       const user = await dbClient.client.db().collection('users').findOne({ _id: new ObjectId(userId) });
       if (user) {
         const parentId = req.query.parentId || 0;
-        const page = req.query.page || 0;
+        const page = /^\d+$/.test(req.query.page) ? parseInt(req.query.page, 10) : 0;
         const cursor = dbClient.client.db().collection('files').aggregate([
-          { $match: { parentId } },
+          { $match: { parentId, userId: user._id } },
           { $skip: 20 * page },
           { $limit: 20 },
         ]);
