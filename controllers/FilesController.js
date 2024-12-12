@@ -72,7 +72,7 @@ class FilesController {
           name: file.name,
           type: file.type,
           isPublic: file.isPublic || false,
-          parentId: file.parentId || '0',
+          parentId: file.parentId || 0,
           localPath,
         };
         dbClient.client.db().collection('files').insertOne(fileDoc);
